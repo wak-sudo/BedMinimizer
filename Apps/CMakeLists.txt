@@ -1,0 +1,6 @@
+add_subdirectory(CertMakerApp)
+add_subdirectory(DfaGenApp)
+add_subdirectory(DfaToDotApp)
+add_subdirectory(GenCodingApp)
+add_subdirectory(VerifierApp)
+add_subdirectory(ClassicMinimizeApp)
