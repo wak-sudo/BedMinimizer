@@ -189,7 +189,7 @@ std::string Utility::str(const PartialDFA &dfa)
 
 void Utility::debug(const std::string &msg)
 {
-    const bool debugFlag = true;
+    const bool debugFlag = false; // turn off when pushing to main
     if (debugFlag)
         std::cout << msg << std::endl;
 }
