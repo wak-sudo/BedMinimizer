@@ -62,7 +62,6 @@ For example, the first element in `transitions`, at index 0, is `[1, 0]`, which 
 
 6. The following files will be created:
 
-   - `output_dfa.dot` – contains the resulting automaton in `.dot` format.
    - `output_dfa.json` – contains the resulting automaton in JSON format.
    - `certificate.json` – contains information that enables fast and independent verification of correctness.
 
