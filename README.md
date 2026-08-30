@@ -76,7 +76,7 @@ The following tools are required to build the project:
 - `make`
 - `cmake >= 3.16`
 - `git` 
-- a compiler supporting **C++20** (for ex. `g++`)
+- `g++ 13` or equivalent. 
 
 Other dependencies will be installed and built by CMake.
 
@@ -113,6 +113,15 @@ The project is split into several modules:
 - **DfaGen** – generates pseudorandom automata with a specified number of states, alphabet size, number of strongly connected components, and the SCC depth. This module can be used to generate test data. Further research is needed.
 
 - **BedMinimizer** – serves as an integration layer for the remaining modules and provides a simplified interface, hiding the details of their internal implementation.
+
+## Dependencies Installed by CMake
+
+General:
+* nlohmann/json v3.11.3
+
+For testing:
+* Catch2 v3.5.2
+* TogaSAT
 
 ## References
 
