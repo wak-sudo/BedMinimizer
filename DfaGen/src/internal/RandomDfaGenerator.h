@@ -27,7 +27,7 @@ private:
 
     std::vector<std::vector<std::vector<long>>> generateLocalTrans();
 
-    void setFreeTransitions(
+    void setTransitions(
         std::vector<std::vector<long>> &transFun);
 
     void setRandomFreeTransition(
@@ -35,7 +35,7 @@ private:
         long node,
         long source);
 
-    void setRandomFreeTransitionWithSink(
+    void setRandomDestination(
         std::vector<std::vector<long>> &transFun,
         long node,
         long source);
@@ -48,4 +48,6 @@ private:
     std::vector<std::vector<long>> randomTransFun(long n, long alphabetSize);
 
     void connectRandom(std::vector<std::vector<long>> &trans, long src, long dest);
+
+    void shuffleLetters(std::vector<std::vector<long>>& trans);
 };

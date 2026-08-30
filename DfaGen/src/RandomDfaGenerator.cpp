@@ -50,7 +50,7 @@ DFA RandomDfaGenerator::generate()
         }
     }
 
-    setFreeTransitions(transFun);
+    setTransitions(transFun);
 
     // Add the sink
     transFun.push_back(vector<long>(alphabetSize_, globalSink_));
@@ -61,7 +61,20 @@ DFA RandomDfaGenerator::generate()
 
     const long initialState = generateInitialState();
 
+    shuffleLetters(transFun);
+
     return DFA(transFun, acceptingStates, initialState);
+}
+
+void RandomDfaGenerator::shuffleLetters(vector<vector<long>> &trans)
+{
+    const size_t statesCount = trans.size();
+    for (size_t state = 0; state < statesCount; state++)
+    {
+        vector<long> destinations = trans[state];
+        shuffle(destinations.begin(), destinations.end(), rng_);
+        trans[state] = destinations;
+    }
 }
 
 vector<vector<vector<long>>> RandomDfaGenerator::generateLocalTrans()
@@ -129,14 +142,15 @@ void RandomDfaGenerator::connectRandom(vector<vector<long>> &trans, long src, lo
     }
 }
 
-void RandomDfaGenerator::setFreeTransitions(vector<vector<long>> &transFun)
+void RandomDfaGenerator::setTransitions(vector<vector<long>> &transFun)
 {
-    for (size_t v = 0; v < dag_.edges.size(); v++)
+    const size_t nodesCount = dag_.edges.size();
+    for (size_t v = 0; v < nodesCount; v++)
     {
-        const size_t states = dag_.statesPerNode.at(v);
+        const size_t statesCount = dag_.statesPerNode.at(v);
         const auto &children = dag_.edges.at(v);
 
-        vector<long> stateOrder(states);
+        vector<long> stateOrder(statesCount);
         iota(stateOrder.begin(), stateOrder.end(), 0);
         shuffle(stateOrder.begin(), stateOrder.end(), rng_);
 
@@ -148,73 +162,64 @@ void RandomDfaGenerator::setFreeTransitions(vector<vector<long>> &transFun)
 
             uniform_int_distribution<long> targetDist(0, dag_.statesPerNode.at(child) - 1);
 
-            connectRandom(transFun, offsets_.at(v) + source, offsets_.at(child) + targetDist(rng_));
+            transFun.at(offsets_.at(v) + source).at(freeLetter_) = offsets_.at(child) + targetDist(rng_);
         }
 
-        if (children.empty()) // if no children, there must be connection to the sink to not make the problem trivial.
-        {
-            if (children.size() >= states)
-                throw RandomGeneratorExp("Cannot create a sink: all states used for DAG edges.");
+        // there must be a connection to the sink
+        const long fromState = stateOrder.at(children.size());
+        transFun.at(offsets_.at(v) + fromState).at(freeLetter_) = globalSink_;
 
-            const long firstFreeSource = stateOrder.at(children.size());
-            connectRandom(transFun, offsets_.at(v) + firstFreeSource, globalSink_);
-        }
-
-        for (size_t i = children.size() + 1; i < states; i++)
+        for (size_t i = children.size() + 1; i < statesCount; i++)
         {
             const long source = stateOrder.at(i);
-            setRandomFreeTransitionWithSink(transFun, v, source);
+            setRandomDestination(transFun, v, source);
         }
     }
 }
 
-void RandomDfaGenerator::setRandomFreeTransitionWithSink(
+void RandomDfaGenerator::setRandomDestination(
     vector<vector<long>> &transFun,
     long node,
     long source)
 {
     const auto &children = dag_.edges.at(node);
 
-    uniform_real_distribution<double> dist(0.0, 1.0);
-    const double r = dist(rng_);
+    uniform_int_distribution<long> innerTarget(0, dag_.statesPerNode.at(node) - 1);
+    uniform_real_distribution<double> choiceDist(0.0, 1.0);
+    const long srcState = offsets_.at(node) + source;
+    const double r = choiceDist(rng_);
+    long destination;
 
     // no children
     if (children.empty())
     {
         if (r < 0.5) // connect inside
-        {
-            uniform_int_distribution<long> dist(0, dag_.statesPerNode.at(node) - 1);
-
-            connectRandom(transFun, offsets_.at(node) + source, offsets_.at(node) + dist(rng_));
-        }
+            destination = offsets_.at(node) + innerTarget(rng_);
         else // connect outside
-        {
-            connectRandom(transFun, offsets_.at(node) + source, globalSink_);
-        }
-
-        return;
-    }
-
-    // 50% trans. to an innter state, 25% to a child, 25% to the sink.
-    if (r < 0.50)
-    {
-        uniform_int_distribution<long> dist(0, dag_.statesPerNode.at(node) - 1);
-        connectRandom(transFun, offsets_.at(node) + source, offsets_.at(node) + dist(rng_));
-    }
-    else if (r < 0.75)
-    {
-        uniform_int_distribution<long> childDist(0, children.size() - 1);
-
-        const long child = children.at(childDist(rng_));
-
-        uniform_int_distribution<long> stateDist(0, dag_.statesPerNode.at(child) - 1);
-
-        connectRandom(transFun, offsets_.at(node) + source, offsets_.at(child) + stateDist(rng_));
+            destination = globalSink_;
     }
     else
     {
-        connectRandom(transFun, offsets_.at(node) + source, globalSink_);
+        uniform_int_distribution<long> childDist(0, children.size() - 1);
+        if (r < 0.50) // 50% trans. to an innter state, 25% to a child, 25% to the sink.
+        {
+            destination = offsets_.at(node) + innerTarget(rng_);
+        }
+        else if (r < 0.75)
+        {
+            const long child = children.at(childDist(rng_));
+
+            uniform_int_distribution<long> childStatesDist(0, dag_.statesPerNode.at(child) - 1);
+
+            destination = offsets_.at(child) + childStatesDist(rng_);
+        }
+        else
+        {
+            destination = globalSink_;
+        }
     }
+
+    transFun.at(srcState).at(freeLetter_) = destination;
 }
 
 void RandomDfaGenerator::setAcceptingStates(

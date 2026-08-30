@@ -37,7 +37,7 @@ GeneratedDag RandomDagGenerator::generate(
     for (long i = 0; i < maxAttempts; i++)
     {
         auto layers = generateLayers(numberOfNodes, depth);
-        auto edges = convertSetVectorToVecVector(generateEdges(layers, numberOfStates));
+        auto edges = convertSetVectorToVecVector(generateEdges(layers));
 
         auto statesPerNode = calculateStatesPerNode(edges, numberOfStates);
 
@@ -51,9 +51,9 @@ GeneratedDag RandomDagGenerator::generate(
     }
 
     throw RandomGeneratorExp(
-                           "Failed to generate a valid DAG after " +
-                           to_string(maxAttempts) +
-                           " attempts.");
+        "Failed to generate a valid DAG after " +
+        to_string(maxAttempts) +
+        " attempts.");
 }
 
 vector<vector<long>> RandomDagGenerator::generateLayers(
@@ -92,9 +92,11 @@ vector<vector<long>> RandomDagGenerator::generateLayers(
     return layers;
 }
 
-vector<set<long>> RandomDagGenerator::generateEdges(
+/*vector<set<long>> RandomDagGenerator::generateEdges(
     const vector<vector<long>> &layers,
-    long numberOfStates)
+    long numberOfStates)*/
+vector<set<long>> RandomDagGenerator::generateEdges(
+    const vector<vector<long>> &layers)
 {
     const long numberOfNodes = accumulate(
         layers.begin(),
@@ -104,8 +106,6 @@ vector<set<long>> RandomDagGenerator::generateEdges(
         {
             return sum + layer.size();
         });
-
-    
 
     vector<set<long>> edges(numberOfNodes);
 
@@ -123,7 +123,7 @@ vector<set<long>> RandomDagGenerator::generateEdges(
         }
     }
 
-    long statesLimit = numberOfStates - layers.size(); // heuristics.
+    // long statesLimit = numberOfStates - layers.size(); // heuristics.
 
     bernoulli_distribution addEdge(0.25);
 
@@ -143,9 +143,9 @@ vector<set<long>> RandomDagGenerator::generateEdges(
                     if (addEdge(rng_))
                     {
                         edges.at(from).insert(to);
-                        statesLimit -= 2;
-                        if(statesLimit <= 0)
-                            return edges;
+                        // statesLimit -= 2;
+                        //  if(statesLimit <= 0)
+                        //    return edges;
                     }
                 }
             }
@@ -167,7 +167,7 @@ vector<long> RandomDagGenerator::calculateStatesPerNode(
 
     for (long v = 0; v < numberOfNodes; v++)
     {
-        statesPerNode.at(v) = max(1L, (long)edges.at(v).size());
+        statesPerNode.at(v) = edges.at(v).size() + 1;
 
         requiredStates += statesPerNode.at(v);
     }

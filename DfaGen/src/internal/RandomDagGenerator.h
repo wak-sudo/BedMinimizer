@@ -29,8 +29,7 @@ private:
         long depth);
 
     std::vector<std::set<long>> generateEdges(
-        const std::vector<std::vector<long>> &layers,
-        long numberOfStates);
+        const std::vector<std::vector<long>> &layers);
 
     std::vector<long> calculateStatesPerNode(
         const std::vector<std::vector<long>> &edges,
