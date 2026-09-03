@@ -1,5 +1,7 @@
 # BedMinimizer
 
+![Screenshot](Other/Pics/BedMinimizer.png)
+
 A collection of tools for solving the problem of **Minimization Modulo a Bounded Edit Distance (MIN-BED)** [1].
 
 # Releases
