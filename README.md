@@ -4,6 +4,10 @@
 
 A collection of tools for solving the problem of **Minimization Modulo a Bounded Edit Distance (MIN-BED)** [1].
 
+The theoretical background paper in Polish can be found in “Other/Docs”.
+
+Writte up 
+
 # Releases
 
 See the release page.
